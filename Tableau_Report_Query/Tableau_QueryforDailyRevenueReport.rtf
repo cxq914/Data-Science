@@ -1,0 +1,222 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf340
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b\fs24 \cf0 WeekData:\
+/*Past one week data*/\
+
+\i Query 1:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\i0 \cf0 /*It extracted revenue data from piston_paid_game*/
+\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 select\
+     sum(price) as total_revenue,\
+     sum(price)/count(distinct restaurant_code) as average_revenue,\
+     count(distinct restaurant_code) as num_stores,\
+     'Applebees' as customer,\
+     date(timestamp - interval '7 hours') as revenue_date\
+from \
+     piston_paid_game \
+where \
+     restaurant_code like 'applebees_%'\
+group by revenue_date\
+having date(timestamp - interval '7 hours') > (current_date - interval '8 days') and\
+date(timestamp - interval '7 hours') <= (current_date - interval '1 days')\
+union all\
+select\
+     sum(price) as total_revenue,\
+     sum(price)/count(distinct restaurant_code) as average_revenue,\
+     count(distinct restaurant_code) as num_stores,\
+     'Johnny Rockets' as customer,\
+     date(timestamp - interval '7 hours') as revenue_date\
+from \
+     piston_paid_game \
+where \
+     restaurant_code like 'jr_%' or restaurant_code = 'johnny_rockets_santa_monica'\
+group by revenue_date\
+having date(timestamp - interval '7 hours') > (current_date - interval '8 days') and\
+date(timestamp - interval '7 hours') <= (current_date - interval '1 days')\
+union all\
+select\
+     sum(price) as total_revenue,\
+     sum(price)/count(distinct restaurant_code) as average_revenue,\
+     count(distinct restaurant_code) as num_stores,\
+     'Montana Mike' as customer,\
+     date(timestamp - interval '7 hours') as revenue_date\
+from \
+     piston_paid_game \
+where \
+     restaurant_code like 'montana_mikes_%'\
+group by revenue_date\
+having date(timestamp - interval '7 hours') > (current_date - interval '8 days') and\
+date(timestamp - interval '7 hours') <= (current_date - interval '1 days')\
+union all\
+select * from (\
+SELECT \
+coalesce(total_revenue,0) as total_revenue,\
+coalesce(average_revenue,0) as average_revenue, \
+coalesce(num_stores,0) as num_stores,\
+'Blue C Sushi' as customer,\
+revenue_date\
+FROM  (\
+   SELECT revenue_date::date\
+   FROM   generate_series(current_date - interval '8 days'+ interval '1 day'\
+                        , current_date - interval '1 day'\
+                        , interval  '1 day') revenue_date\
+   ) d\
+left join \
+(\
+select\
+     sum(price) as total_revenue,\
+     sum(price)/count(distinct restaurant_code) as average_revenue,\
+     count(distinct restaurant_code) as num_stores,\
+     'Blue C Sushi' as customer,\
+     date(timestamp - interval '7 hours') as revenue_date\
+from \
+     piston_paid_game  ppg\
+where \
+     restaurant_code like '%bcs%' and date(timestamp - interval '7 hours') \
+between  (current_date - interval '8 days') and  (current_date - interval '1 days')\
+group by revenue_date) t using (revenue_date)) as boo\
+\
+union all\
+\
+select\
+     sum(price) as total_revenue,\
+     sum(price)/count(distinct restaurant_code) as average_revenue,\
+     count(distinct restaurant_code) as num_stores,\
+     'Outback' as customer,\
+     date(timestamp - interval '7 hours') as revenue_date\
+from \
+     piston_paid_game \
+where \
+     restaurant_code like 'outback_%'\
+group by revenue_date\
+having date(timestamp - interval '7 hours') > (current_date - interval '8 days') and\
+date(timestamp - interval '7 hours') <= (current_date - interval '1 days')\
+\
+
+\i\b Query 2:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 /*It extracted POS_Check data from daily_restaurant_stats*/
+\i0\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 select\
+     sum(pos_check_count) as POS_Check,\
+     sum(online_prestos_count) as Device_Number,\
+     'Applebees' as customer,\
+     day as revenue_date\
+from \
+     daily_restaurant_stats \
+where \
+     restaurant_code like 'applebees_%'\
+group by revenue_date\
+having day > (current_date - interval '8 days') and\
+       day <= (current_date - interval '1 days')\
+union all\
+select\
+     sum(pos_check_count) as POS_Check,\
+     sum(online_prestos_count) as Device_Number,\
+     'Johnny Rockets' as customer,\
+     day as revenue_date\
+from \
+     daily_restaurant_stats \
+where \
+     restaurant_code like 'jr_%' or restaurant_code = 'johnny_rockets_santa_monica'\
+group by revenue_date\
+having day > (current_date - interval '8 days') and\
+      day <= (current_date - interval '1 days')\
+union all\
+select\
+     sum(pos_check_count) as POS_Check,\
+     sum(online_prestos_count) as Device_Number,\
+     'Montana Mike' as customer,\
+     day as revenue_date\
+from \
+     daily_restaurant_stats  \
+where \
+     restaurant_code like 'montana_mikes_%'\
+group by revenue_date\
+having day > (current_date - interval '8 days') and\
+      day <= (current_date - interval '1 days')\
+union all\
+select\
+     sum(pos_check_count) as POS_Check,\
+     sum(online_prestos_count) as Device_Number,\
+     'Blue C Sushi' as customer,\
+     day as revenue_date\
+from \
+     daily_restaurant_stats   \
+where \
+     restaurant_code like '%bcs%' and day \
+between  (current_date - interval '8 days') and  (current_date - interval '1 days')\
+group by revenue_date\
+union all\
+select\
+     sum(pos_check_count) as POS_Check,\
+     sum(online_prestos_count) as Device_Number,\
+     'Outback' as customer,\
+     day as revenue_date\
+from \
+     daily_restaurant_stats   \
+where \
+     restaurant_code like '%outback%' and restaurant_status = 'Customer - Live' and\
+day between  (current_date - interval '8 days') and  (current_date - interval '1 days')\
+group by revenue_date\
+\
+\
+\
+\
+\
+\
+
+\b Custom SQL:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 /*Historical Data: Past 10 weeks\'92 */\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\i \cf0 Query 1:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\i0 \cf0 /*It extracted revenue data from piston_paid_game*/
+\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 select\
+     sum(price) as total_revenue,\
+     sum(price)/count(distinct restaurant_code) as average_revenue,\
+     date(timestamp - interval '7 hours') as revenue_date\
+from \
+     piston_paid_game \
+where \
+     restaurant_code like 'applebees_%'\
+group by revenue_date\
+having date(timestamp - interval '7 hours') in \
+       ((current_date - interval '1 days'),(current_date - interval '8 days'),\
+        (current_date - interval '15 days'),(current_date - interval '22 days'),\
+        (current_date - interval '29 days'),(current_date - interval '36 days'),\
+        (current_date - interval '43 days'),(current_date - interval '50 days'),\
+        (current_date - interval '57 days'),(current_date - interval '64 days'))\
+\
+\
+
+\i\b Query 2:\
+/*It extracted POS_Check data from daily_restaurant_stats*/
+\i0\b0 \
+select\
+     sum(pos_check_count) as POSCheck_Number,\
+     day as revenue_date\
+from \
+     daily_restaurant_stats \
+where \
+     restaurant_code like 'applebees_%' \
+group by revenue_date\
+having  day in \
+       ((current_date - interval '1 days'),(current_date - interval '8 days'),\
+        (current_date - interval '15 days'),(current_date - interval '22 days'),\
+        (current_date - interval '29 days'),(current_date - interval '36 days'),\
+        (current_date - interval '43 days'),(current_date - interval '50 days'),\
+        (current_date - interval '57 days'),(current_date - interval '64 days'))}
